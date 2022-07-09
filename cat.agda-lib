@@ -1,0 +1,4 @@
+name: cat
+include: . 
+depend: cubical standard-library
+flags: --cubical
