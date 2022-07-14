@@ -1,4 +1,4 @@
-
+{-# OPTIONS --allow-unsolved-metas #-}
 -- Taken from https://github.com/agda/agda-categories
 module CatLib where 
     open import Cubical.Core.Everything using (_≡_)
@@ -119,6 +119,32 @@ module CatLib where
             --_⁂_ : A ⇒ B → C ⇒ D → A × C ⇒ B × D
             --f ⁂ g = [ product ⇒ product ] f × g
 
+    module ObjectExponential {o h} (𝒞 : Category o h) where 
+        open Category 𝒞
+        open ObjectProduct 𝒞
+
+        record ExponentialOb (A B : Ob) : Set (o ⊔ h) where 
+            field
+                B^A : Ob 
+                product : Product B^A A 
+
+            open Product
+            B^A×A : Ob 
+            B^A×A = product .A×B
+
+            field 
+                eval : B^A×A ⇒ B
+                λg : {X A : Ob}(X×A : Product X A) → ((X×A .A×B) ⇒ B) → (X ⇒ B^A)
+                
+    module Exponentials {o h} (𝒞 : Category o h) where 
+        open Category 𝒞 
+        open ObjectExponential 𝒞
+        open import Level using (levelOfTerm)
+
+        record ExponentialsT : Set (levelOfTerm 𝒞) where
+            field 
+                exponential : {A B : Ob} → ExponentialOb A B
+
     module Terminal {o h} (𝒞 : Category o h) where
         open Category 𝒞
         
@@ -142,6 +168,18 @@ module CatLib where
                 terminal : TerminalT
                 products : BinaryProductsT
                 
+    -- https://github.com/agda/agda-categories/blob/master/src/Categories/Category/CartesianClosed/Canonical.agda
+    module CartesianClosed {o h} (𝒞 : Category o h) where 
+        open import Level using (levelOfTerm)
+        open Terminal 𝒞 using (TerminalT)
+        open BinaryProducts 𝒞 using (BinaryProductsT)
+        open Exponentials 𝒞 using (ExponentialsT)
+
+        record CartesianClosedT : Set (levelOfTerm 𝒞) where 
+            field 
+                terminal : TerminalT
+                products : BinaryProductsT
+                exponentials : ExponentialsT
 
     module Equalizer {o ℓ} (𝒞 : Category o ℓ) where 
         open Category 𝒞
@@ -433,3 +471,4 @@ module CatLib where
             zag : ∀{B : D.Ob} → R₁ (ε B) C.∘ η (R₀ B) ≡ C.id
     
 
+ 
